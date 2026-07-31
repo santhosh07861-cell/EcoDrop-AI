@@ -1,0 +1,12 @@
+{
+  "name": "ecodrop-ai-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Project package runner for EcoDrop AI",
+  "scripts": {
+    "dev": "node -e \"const { spawn } = require('child_process'); spawn('npm', ['run', 'dev'], { cwd: 'backend', stdio: 'inherit', shell: true }); spawn('npm', ['run', 'dev'], { cwd: 'frontend', stdio: 'inherit', shell: true });\"",
+    "start": "npm run dev",
+    "backend": "npm --prefix backend run dev",
+    "frontend": "npm --prefix frontend run dev"
+  }
+}

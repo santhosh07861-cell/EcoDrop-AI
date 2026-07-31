@@ -1,0 +1,262 @@
+{
+  "users": [
+    {
+      "id": "21253f3a-e243-4b8d-ac09-d8e8d77a0457",
+      "createdAt": "2026-07-31T16:47:36.314Z",
+      "userId": "USR-8655",
+      "name": "lakshmanlal",
+      "email": "lakshmanlalnetti@gmail.com",
+      "passwordHash": "$2a$10$ZVM2s84F1PPRfn.JKFdJ5.vazECdqkFO.hkUesKEmpsW1wg83jbW6",
+      "role": "citizen",
+      "phone": "7386136257",
+      "address": "maddilapalem,Ward 12, Visakhapatnam",
+      "greenPoints": 50,
+      "totalSubmissions": 0,
+      "co2SavedKg": 0
+    },
+    {
+      "id": "usr_citizen_demo",
+      "userId": "USR-1001",
+      "name": "Ravi Teja",
+      "email": "citizen@gvmc.gov.in",
+      "passwordHash": "$2a$10$w6K6D5J4d.ZJp1X9n0H4gO0Z1r2s3t4u5v6w7x8y9z0a1b2c3d4e",
+      "role": "citizen",
+      "phone": "+91 98765 43210",
+      "address": "Siripuram, Ward 12, Visakhapatnam",
+      "greenPoints": 400,
+      "totalSubmissions": 7,
+      "co2SavedKg": 15.4,
+      "createdAt": "2026-07-31T07:24:28.157Z",
+      "updatedAt": "2026-07-31T13:05:41.763Z"
+    },
+    {
+      "id": "usr_admin_demo",
+      "userId": "ADM-GVMC-99",
+      "employeeId": "GVMC-EMP-8842",
+      "name": "Dr. K. V. Satyanarayana (GVMC Health Officer)",
+      "email": "admin@gvmc.gov.in",
+      "passwordHash": "$2a$10$w6K6D5J4d.ZJp1X9n0H4gO0Z1r2s3t4u5v6w7x8y9z0a1b2c3d4e",
+      "role": "admin",
+      "department": "Public Health & Solid Waste Management",
+      "phone": "+91 891 2754321",
+      "createdAt": "2026-07-31T07:24:28.158Z"
+    }
+  ],
+  "droppoints": [
+    {
+      "id": "dp_siripuram_12",
+      "dropPointId": "DP-GVMC-001",
+      "name": "Siripuram Smart E-Waste Hub",
+      "ward": "Ward 12 (Siripuram)",
+      "zone": "Zone 3 (Central Vizag)",
+      "address": "Opposite HSBC Building, Siripuram Circle, Visakhapatnam - 530003",
+      "lat": 17.722,
+      "lng": 83.315,
+      "operatingHours": "08:00 AM - 08:00 PM",
+      "contactPerson": "Field Officer M. Rajesh (GVMC)",
+      "acceptedTypes": [
+        "Mobiles",
+        "Laptops",
+        "Batteries",
+        "Chargers",
+        "Small Appliances"
+      ],
+      "capacityStatus": "45% Full",
+      "capacityPercentage": 45,
+      "status": "Active",
+      "qrCodeData": "DP-GVMC-001|Siripuram Hub|Ward 12"
+    },
+    {
+      "id": "dp_rkbeach_14",
+      "dropPointId": "DP-GVMC-002",
+      "name": "RK Beach Promenade Drop Kiosk",
+      "ward": "Ward 14 (RK Beach)",
+      "zone": "Zone 3 (Central Vizag)",
+      "address": "Near Submarine Museum Promenade, Beach Road, Visakhapatnam - 530017",
+      "lat": 17.7125,
+      "lng": 83.3225,
+      "operatingHours": "06:00 AM - 09:00 PM",
+      "contactPerson": "Supervisor K. Srinivasa Rao",
+      "acceptedTypes": [
+        "Mobiles",
+        "Batteries",
+        "Small Hardware",
+        "Chargers"
+      ],
+      "capacityStatus": "70% Full",
+      "capacityPercentage": 70,
+      "status": "Active",
+      "qrCodeData": "DP-GVMC-002|RK Beach Kiosk|Ward 14"
+    },
+    {
+      "id": "dp_mvp_8",
+      "dropPointId": "DP-GVMC-003",
+      "name": "MVP Colony Sector-4 Recycling Station",
+      "ward": "Ward 8 (MVP Colony)",
+      "zone": "Zone 2 (North Vizag)",
+      "address": "Adjacent to Rythu Bazar, Sector 4, MVP Colony, Visakhapatnam - 530017",
+      "lat": 17.744,
+      "lng": 83.332,
+      "operatingHours": "07:30 AM - 07:30 PM",
+      "contactPerson": "Field Officer P. Lakshmi",
+      "acceptedTypes": [
+        "All Household E-Waste",
+        "Monitors",
+        "TVs",
+        "Batteries"
+      ],
+      "capacityStatus": "30% Full",
+      "capacityPercentage": 30,
+      "status": "Active",
+      "qrCodeData": "DP-GVMC-003|MVP Colony Station|Ward 8"
+    },
+    {
+      "id": "dp_gajuwaka_4",
+      "dropPointId": "DP-GVMC-004",
+      "name": "Gajuwaka Industrial Belt E-Waste Drop Center",
+      "ward": "Ward 65 (Gajuwaka)",
+      "zone": "Zone 4 (South Vizag)",
+      "address": "Near Gajuwaka Bus Depot Main Gate, Visakhapatnam - 530026",
+      "lat": 17.69,
+      "lng": 83.218,
+      "operatingHours": "08:00 AM - 06:00 PM",
+      "contactPerson": "GVMC Inspector T. Ramesh",
+      "acceptedTypes": [
+        "Commercial & Industrial E-Waste",
+        "PCBs",
+        "Large Hardware"
+      ],
+      "capacityStatus": "82% Full (Alert)",
+      "capacityPercentage": 82,
+      "status": "Active",
+      "qrCodeData": "DP-GVMC-004|Gajuwaka Drop Center|Ward 65"
+    },
+    {
+      "id": "dp_pendurthi_5",
+      "dropPointId": "DP-GVMC-005",
+      "name": "Pendurthi Junction Smart E-Bin",
+      "ward": "Ward 92 (Pendurthi)",
+      "zone": "Zone 5 (West Vizag)",
+      "address": "GVMC Zonal Office Compound, Pendurthi Main Road, Visakhapatnam - 531173",
+      "lat": 17.778,
+      "lng": 83.212,
+      "operatingHours": "08:00 AM - 07:00 PM",
+      "contactPerson": "Field Officer S. Naidu",
+      "acceptedTypes": [
+        "Mobiles",
+        "Batteries",
+        "Chargers",
+        "Small IT Hardware"
+      ],
+      "capacityStatus": "20% Full",
+      "capacityPercentage": 20,
+      "status": "Active",
+      "qrCodeData": "DP-GVMC-005|Pendurthi Smart Bin|Ward 92"
+    },
+    {
+      "id": "dp_dwarakanagar_20",
+      "dropPointId": "DP-GVMC-006",
+      "name": "Dwaraka Nagar Commercial Hub Drop Point",
+      "ward": "Ward 20 (Dwaraka Nagar)",
+      "zone": "Zone 3 (Central Vizag)",
+      "address": "Near RTC Complex Road, 1st Lane, Dwaraka Nagar, Visakhapatnam - 530016",
+      "lat": 17.728,
+      "lng": 83.303,
+      "operatingHours": "09:00 AM - 08:30 PM",
+      "contactPerson": "GVMC Officer V. Anand",
+      "acceptedTypes": [
+        "Laptops",
+        "Mobiles",
+        "Batteries",
+        "Monitors"
+      ],
+      "capacityStatus": "55% Full",
+      "capacityPercentage": 55,
+      "status": "Active",
+      "qrCodeData": "DP-GVMC-006|Dwaraka Nagar Hub|Ward 20"
+    }
+  ],
+  "collections": [
+    {
+      "id": "c763aea3-d5ff-49c9-9815-e8c1dd4e38de",
+      "createdAt": "2026-07-31T13:05:41.762Z",
+      "collectionId": "COL-2026-0894",
+      "userId": "usr_citizen_demo",
+      "userName": "Citizen User",
+      "dropPointId": "DP-GVMC-001",
+      "dropPointName": "Siripuram Smart E-Waste Hub",
+      "ward": "Ward 12 (Siripuram)",
+      "wasteCategory": "Mobile Phone & Accessories",
+      "estimatedWeight": "0.35 kg (Estimate)",
+      "photo": "http://localhost:5001/uploads/photo-1785503141760-858680710.jpeg",
+      "location": "Opposite HSBC Building, Siripuram Circle, Visakhapatnam - 530003",
+      "date": "2026-07-31T13:05:41.762Z",
+      "greenPointsEarned": 30,
+      "status": "Pending Dispatch"
+    },
+    {
+      "id": "d99975dc-aa85-4941-b0e3-2542c8e4b5ab",
+      "createdAt": "2026-07-31T12:58:18.575Z",
+      "collectionId": "COL-2026-0893",
+      "userId": "usr_citizen_demo",
+      "userName": "Citizen User",
+      "dropPointId": "DP-GVMC-001",
+      "dropPointName": "Siripuram Smart E-Waste Hub",
+      "ward": "Ward 12 (Siripuram)",
+      "wasteCategory": "Mobile Phone & Accessories",
+      "estimatedWeight": "0.35 kg (Estimate)",
+      "photo": "http://localhost:5001/uploads/photo-1785502698572-488352783.jpeg",
+      "location": "Opposite HSBC Building, Siripuram Circle, Visakhapatnam - 530003",
+      "date": "2026-07-31T12:58:18.574Z",
+      "greenPointsEarned": 30,
+      "status": "Pending Dispatch"
+    },
+    {
+      "id": "col_3",
+      "collectionId": "COL-2026-0893",
+      "userId": "usr_citizen_demo",
+      "userName": "Sujatha P.",
+      "dropPointId": "DP-GVMC-002",
+      "dropPointName": "RK Beach Promenade Drop Kiosk",
+      "ward": "Ward 14 (RK Beach)",
+      "wasteCategory": "Lithium Batteries",
+      "estimatedWeight": "0.50 kg",
+      "confidence": "99.0%",
+      "greenPointsEarned": 40,
+      "photo": "https://images.unsplash.com/photo-1619725002198-6a689b72f41d?auto=format&fit=crop&w=400&q=80",
+      "location": "RK Beach Road",
+      "date": "2026-07-30T07:24:28.158Z",
+      "status": "Pending Dispatch"
+    }
+  ],
+  "complaints": [
+    {
+      "id": "cmp_1",
+      "complaintId": "CMP-GVMC-101",
+      "userId": "usr_citizen_demo",
+      "userName": "Ravi Teja",
+      "type": "Overflowing Bin",
+      "description": "The Gajuwaka industrial bin is completely filled with discarded monitors and battery packs. Waste is spilling outside.",
+      "photo": "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=400&q=80",
+      "location": "Near Gajuwaka Bus Depot Main Gate, Ward 65",
+      "dropPointId": "DP-GVMC-004",
+      "status": "In Progress",
+      "assignedOfficer": "GVMC Inspector T. Ramesh",
+      "date": "2026-07-29T07:24:28.158Z"
+    },
+    {
+      "id": "cmp_2",
+      "complaintId": "CMP-GVMC-102",
+      "userId": "usr_citizen_demo",
+      "userName": "Pravallika N.",
+      "type": "Unregistered E-Waste Dumping",
+      "description": "Unidentified vendor dumped several broken TV CRTs near Rythu Bazar open drain.",
+      "photo": "https://images.unsplash.com/photo-1604186837056-8e7c286756f2?auto=format&fit=crop&w=400&q=80",
+      "location": "MVP Colony Ward 8",
+      "dropPointId": null,
+      "status": "Resolved",
+      "assignedOfficer": "Field Officer P. Lakshmi",
+      "date": "2026-07-26T07:24:28.158Z"
+    }
+  ]
+}
