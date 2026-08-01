@@ -100,12 +100,6 @@ export default function WorkerLogin() {
           </button>
         </form>
 
-        {/* Worker Credential Hint Box */}
-        <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-[11px] space-y-1">
-          <span className="font-bold text-amber-900 dark:text-amber-200 block">Firebase Stored Worker Credentials:</span>
-          <code className="text-amber-800 dark:text-amber-300 block font-mono text-[10px]">worker@gvmc.gov.in / workerpass123</code>
-        </div>
-
       </div>
     </div>
   );

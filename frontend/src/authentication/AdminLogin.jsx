@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Mail, Lock, ArrowLeft, Building2, Key, CheckCircle2, UserCheck } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowLeft, Building2, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES, ROLE_LABELS } from '../constants/roles';
 import { AuthService, ADMIN_ROLE_ACCOUNTS } from '../services/AuthService';
@@ -117,7 +117,7 @@ export default function AdminLogin() {
 
           {/* Password Input */}
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Role Password (Stored in Firebase)</label>
+            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Role Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
@@ -147,28 +147,6 @@ export default function AdminLogin() {
             )}
           </button>
         </form>
-
-        {/* Registered Role Credentials Hint Box */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 text-[11px]">
-          <h4 className="font-bold text-slate-800 dark:text-slate-200 flex items-center space-x-1.5">
-            <Key className="w-3.5 h-3.5 text-amber-500" />
-            <span>Firebase Stored Member Credentials:</span>
-          </h4>
-          <div className="space-y-1 text-slate-600 dark:text-slate-400 font-medium">
-            <div className={`p-1.5 rounded-lg flex justify-between items-center ${selectedRole === ROLES.FIELD_OFFICER ? 'bg-sky-100/80 dark:bg-sky-950 font-bold text-sky-900 dark:text-sky-200' : ''}`}>
-              <span>• Field Officer:</span>
-              <code className="text-[10px]">field.officer@gvmc.gov.in / fieldpass123</code>
-            </div>
-            <div className={`p-1.5 rounded-lg flex justify-between items-center ${selectedRole === ROLES.COMMISSIONER ? 'bg-purple-100/80 dark:bg-purple-950 font-bold text-purple-900 dark:text-purple-200' : ''}`}>
-              <span>• Commissioner:</span>
-              <code className="text-[10px]">commissioner@gvmc.gov.in / commpass123</code>
-            </div>
-            <div className={`p-1.5 rounded-lg flex justify-between items-center ${selectedRole === ROLES.SUPERVISOR ? 'bg-emerald-100/80 dark:bg-emerald-950 font-bold text-emerald-900 dark:text-emerald-200' : ''}`}>
-              <span>• System Supervisor:</span>
-              <code className="text-[10px]">supervisor@gvmc.gov.in / superpass123</code>
-            </div>
-          </div>
-        </div>
 
       </div>
     </div>
