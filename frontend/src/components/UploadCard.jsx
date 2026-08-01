@@ -556,8 +556,18 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
       // 1. Instantly compress photo on client side to lightweight 30KB data URL (takes ~20ms)
       const photoDataUrl = selectedFile ? await compressImageToDataUrl(selectedFile) : '';
 
-      // 2. Save directly to Firebase Firestore
-      await ReportService.createComplaint({
+      // 2. Save Drop-Off Collection to Firebase Firestore & History
+      await ReportService.createCollection({
+        wasteCategory: aiResult.wasteCategory,
+        estimatedWeight: aiResult.estimatedWeight,
+        greenPointsEarned: aiResult.greenPoints || 50,
+        photoUrl: photoDataUrl,
+        dropPointName: 'GVMC Visakhapatnam Smart Kiosk',
+        status: 'Verified & Logged'
+      });
+
+      // 3. Also log ticket record to complaints store
+      ReportService.createComplaint({
         dropPointId: dropPointId,
         userName: 'Citizen User',
         type: `E-Waste: ${aiResult.wasteCategory}`,
@@ -565,9 +575,9 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
         photoUrl: photoDataUrl,
         location: 'GVMC Visakhapatnam Smart Kiosk',
         status: 'Verified & Logged'
-      });
+      }).catch(e => console.warn('Complaint sync notice:', e));
 
-      // 3. Background Storage upload (fire-and-forget without blocking UI)
+      // 4. Background Storage upload (fire-and-forget without blocking UI)
       if (selectedFile) {
         StorageService.uploadImage(selectedFile, 'ewaste_collections').catch(() => {});
       }

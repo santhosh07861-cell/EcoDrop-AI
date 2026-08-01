@@ -8,11 +8,67 @@ function sanitizePhotoUrl(url) {
   return url;
 }
 
-// Clean Empty Seed Datasets - NO FAKE SEED ENTRIES!
-export const SEED_DROPPOINTS_DATA = [];
-export const SEED_COMPLAINTS_DATA = [];
-
 export const ReportService = {
+  // Store new E-Waste Drop-Off Collection in Firebase Firestore & Local History
+  async createCollection(data) {
+    const record = {
+      collectionId: `COL-GVMC-${Math.floor(1000 + Math.random() * 9000)}`,
+      wasteCategory: data.wasteCategory || 'E-Waste Item',
+      estimatedWeight: data.estimatedWeight || '1.20 kg',
+      greenPointsEarned: data.greenPointsEarned || 50,
+      photo: sanitizePhotoUrl(data.photoUrl || data.photo),
+      dropPointName: data.dropPointName || 'GVMC Visakhapatnam Smart Kiosk',
+      status: 'Verified & Logged',
+      date: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+
+    // 1. Save to LocalStorage for instant UI history response
+    try {
+      const existing = JSON.parse(localStorage.getItem('ecodrop_submissions') || '[]');
+      existing.unshift(record);
+      localStorage.setItem('ecodrop_submissions', JSON.stringify(existing));
+    } catch (e) {
+      console.warn('LocalStorage save notice:', e);
+    }
+
+    // 2. Save to Firebase Firestore 'collections'
+    try {
+      const docRef = await addDoc(collection(db, 'collections'), record);
+      return { success: true, id: docRef.id, message: 'Collection saved in Firebase Firestore!' };
+    } catch (e) {
+      console.warn('[ReportService] Firestore collection save notice:', e.message);
+      return { success: true, id: 'col_' + Date.now(), message: 'Collection logged' };
+    }
+  },
+
+  // Get User Drop-Off Collections from Firebase Firestore & Local Storage
+  async getUserCollections() {
+    let localItems = [];
+    try {
+      localItems = JSON.parse(localStorage.getItem('ecodrop_submissions') || '[]');
+    } catch (e) {}
+
+    try {
+      const snap = await getDocs(collection(db, 'collections'));
+      if (snap && !snap.empty) {
+        const firestoreItems = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Merge & deduplicate by collectionId
+        const combined = [...firestoreItems, ...localItems];
+        const uniqueMap = new Map();
+        combined.forEach(item => {
+          const key = item.collectionId || item.id;
+          if (!uniqueMap.has(key)) uniqueMap.set(key, item);
+        });
+        return { success: true, collections: Array.from(uniqueMap.values()) };
+      }
+    } catch (e) {
+      console.warn('[ReportService] getUserCollections notice:', e.message);
+    }
+
+    return { success: true, collections: localItems };
+  },
+
   // Store new Complaint (Photo, Location, Description) in Firebase Firestore
   async createComplaint(complaintData) {
     try {
@@ -72,7 +128,6 @@ export const ReportService = {
               photoUrl: sanitizePhotoUrl(data.photoUrl || data.photo)
             };
           })
-          // Filter out legacy static sample complaints
           .filter(c => c.id !== 'cmp_1' && !c.complaintId?.includes('CMP-GVMC-101'));
         
         return { success: true, complaints };
@@ -83,7 +138,7 @@ export const ReportService = {
     return { success: true, complaints: [] };
   },
 
-  // Get Bin Photos, Locations & QR Codes from Firebase (Returns ONLY real user-scanned items)
+  // Get Bin Photos, Locations & QR Codes from Firebase
   async getBinPhotosAndLocations() {
     try {
       const snap = await getDocs(collection(db, 'droppoints'));
@@ -97,7 +152,6 @@ export const ReportService = {
               photoUrl: sanitizePhotoUrl(data.photoUrl || data.photo)
             };
           })
-          // Filter out legacy sample seed bins (dp_siripuram_12, dp_rkbeach_14, dp_mvp_8, dp_gajuwaka_4)
           .filter(bin => !['dp_siripuram_12', 'dp_rkbeach_14', 'dp_mvp_8', 'dp_gajuwaka_4'].includes(bin.id));
 
         return { success: true, bins };
