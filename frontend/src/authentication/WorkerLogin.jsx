@@ -3,12 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { HardHat, Lock, ArrowLeft, BadgeCheck, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../constants/roles';
-import { AuthService, ADMIN_ROLE_ACCOUNTS } from '../services/AuthService';
+import { AuthService } from '../services/AuthService';
 import toast from 'react-hot-toast';
 
 export default function WorkerLogin() {
-  const [email, setEmail] = useState(ADMIN_ROLE_ACCOUNTS.worker.email);
-  const [password, setPassword] = useState(ADMIN_ROLE_ACCOUNTS.worker.password);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();

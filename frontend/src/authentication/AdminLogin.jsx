@@ -3,26 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, ArrowLeft, Building2, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES, ROLE_LABELS } from '../constants/roles';
-import { AuthService, ADMIN_ROLE_ACCOUNTS } from '../services/AuthService';
+import { AuthService } from '../services/AuthService';
 import toast from 'react-hot-toast';
 
 export default function AdminLogin() {
   const [selectedRole, setSelectedRole] = useState(ROLES.FIELD_OFFICER);
-  const [email, setEmail] = useState(ADMIN_ROLE_ACCOUNTS.field_officer.email);
-  const [password, setPassword] = useState(ADMIN_ROLE_ACCOUNTS.field_officer.password);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();
-
-  // Auto-populate role credentials when dropdown selection changes
-  const handleRoleSelect = (roleKey) => {
-    setSelectedRole(roleKey);
-    const account = ADMIN_ROLE_ACCOUNTS[roleKey];
-    if (account) {
-      setEmail(account.email);
-      setPassword(account.password);
-    }
-  };
 
   useEffect(() => {
     // Seed admin role accounts to Firebase Firestore on load
@@ -75,7 +65,7 @@ export default function AdminLogin() {
           </span>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">Admin Portal Login</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Firebase Firestore Authenticated Roles with Unique Passwords
+            Firebase Firestore Authenticated Administrative Roles
           </p>
         </div>
 
@@ -89,7 +79,7 @@ export default function AdminLogin() {
               <Building2 className="w-4 h-4 text-sky-500 absolute left-3 top-3" />
               <select
                 value={selectedRole}
-                onChange={(e) => handleRoleSelect(e.target.value)}
+                onChange={(e) => setSelectedRole(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white font-bold outline-none focus:ring-2 focus:ring-sky-500"
               >
                 <option value={ROLES.FIELD_OFFICER}>GVMC Field Officer</option>
