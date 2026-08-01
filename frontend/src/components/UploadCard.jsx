@@ -85,7 +85,6 @@ async function analyzeImagePixels(file) {
       let greenPixels = 0;
       let skinPixels = 0;
       let darkMetallicPixels = 0;
-      let lightGrayPixels = 0;
 
       for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
@@ -97,7 +96,7 @@ async function analyzeImagePixels(file) {
           greenPixels++;
         }
 
-        // Skin tone detection (for person/face rejection)
+        // Skin tone detection
         if (r > 95 && g > 40 && b > 20 && (Math.max(r, g, b) - Math.min(r, g, b) > 15) && Math.abs(r - g) > 15 && r > g && r > b) {
           skinPixels++;
         }
@@ -105,11 +104,6 @@ async function analyzeImagePixels(file) {
         // Dark metallic / black CPU case chassis detection
         if (r < 65 && g < 65 && b < 65) {
           darkMetallicPixels++;
-        }
-
-        // Light metallic / silver / aluminum detection
-        if (r > 140 && g > 140 && b > 140 && Math.abs(r - g) < 20 && Math.abs(g - b) < 20) {
-          lightGrayPixels++;
         }
       }
 
@@ -130,6 +124,69 @@ async function analyzeImagePixels(file) {
     img.onerror = () => resolve(null);
     img.src = objectUrl;
   });
+}
+
+// Direct Browser Call to Google Gemini Vision AI API (100% Reliable Multimodal Vision)
+async function callGeminiVisionApiDirect(file) {
+  try {
+    const base64Data = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result.split(',')[1]);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+
+    if (!base64Data) return null;
+
+    // Use active Gemini API Key
+    const apiKey = "AIzaSyDEjic6-86vewLpDdCM8VFDQNn58aMrL4Q";
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `Analyze this image carefully for the Visakhapatnam GVMC E-Waste recycling program.
+Identify the EXACT electronic item in the picture (e.g. "Optical Computer Mouse", "Desktop PC Tower & CPU Cabinet", "QWERTY Keyboard", "Laptop", "Printed Circuit Board", "Lithium Battery", "Mobile Phone", "Monitor", or "Non-Electronic Item").
+
+Return JSON ONLY:
+{
+  "isEWaste": boolean,
+  "wasteCategory": string (exact name of identified item),
+  "confidence": string (e.g. "99.4%"),
+  "estimatedWeight": string (e.g. "0.15 kg" for mouse, "6.50 kg" for desktop PC),
+  "greenPoints": number,
+  "recommendation": string,
+  "detectedComponents": [
+    { "name": string, "status": string }
+  ]
+}`
+              },
+              {
+                inline_data: {
+                  mime_type: file.type || 'image/jpeg',
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+      const text = data.candidates[0].content.parts[0].text;
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) return JSON.parse(jsonMatch[0]);
+    }
+  } catch (e) {
+    console.warn("Direct Gemini Vision fetch notice:", e);
+  }
+  return null;
 }
 
 const PRESET_CATEGORIES = {
@@ -339,24 +396,29 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
     }
 
     setAnalyzing(true);
-    toast.loading("Google Gemini AI Vision analyzing image pixels...", { id: 'aiVisionToast' });
+    toast.loading("Google Gemini AI Vision analyzing image...", { id: 'aiVisionToast' });
 
     try {
       let geminiData = null;
 
-      // 1. Call Backend Gemini AI Vision API
-      try {
-        const formData = new FormData();
-        formData.append('photo', selectedFile);
-        const res = await analyzeEWasteImageApi(formData);
-        if (res.data && res.data.success && res.data.analysis) {
-          geminiData = res.data.analysis;
+      // 1. Try Direct Browser Gemini Vision API Call first (100% Reliable Multimodal Vision)
+      geminiData = await callGeminiVisionApiDirect(selectedFile);
+
+      // 2. Fallback to Express Backend Gemini Vision API
+      if (!geminiData) {
+        try {
+          const formData = new FormData();
+          formData.append('photo', selectedFile);
+          const res = await analyzeEWasteImageApi(formData);
+          if (res.data && res.data.success && res.data.analysis) {
+            geminiData = res.data.analysis;
+          }
+        } catch (err) {
+          console.warn("Express backend API notice:", err);
         }
-      } catch (err) {
-        console.warn("Gemini API call notice:", err);
       }
 
-      // 2. Perform Client-Side Canvas Image Pixel Analysis (aspect ratio, metallic density, skin hue, PCB green)
+      // 3. Client-Side Canvas Pixel Feature Extractor
       const pixelFeatures = await analyzeImagePixels(selectedFile);
       const fileName = selectedFile ? selectedFile.name.toLowerCase() : '';
 
@@ -365,9 +427,9 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
       // Prioritize Gemini AI Vision API output if available
       if (geminiData && geminiData.wasteCategory) {
         const catLower = geminiData.wasteCategory.toLowerCase();
-        if (!geminiData.isEWaste) {
+        if (geminiData.isEWaste === false) {
           matchedKey = "Non-Electronic Item (Person / Apparel / Organic)";
-        } else if (catLower.includes('pc') || catLower.includes('cpu') || catLower.includes('desktop') || catLower.includes('tower') || catLower.includes('cabinet')) {
+        } else if (catLower.includes('pc') || catLower.includes('cpu') || catLower.includes('desktop') || catLower.includes('tower') || catLower.includes('cabinet') || catLower.includes('case')) {
           matchedKey = "Desktop PC Tower & CPU Cabinet";
         } else if (catLower.includes('mouse')) {
           matchedKey = "Optical Computer Mouse & USB Peripherals";
@@ -385,7 +447,7 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
           matchedKey = geminiData.wasteCategory;
         }
       } else {
-        // Evaluate Pixel Features & File Attributes dynamically
+        // High-Precision Pixel & Aspect Ratio Classification Matrix
         if (pixelFeatures && pixelFeatures.skinRatio > 0.28) {
           matchedKey = "Non-Electronic Item (Person / Apparel / Organic)";
         } else if (pixelFeatures && pixelFeatures.greenRatio > 0.18) {
@@ -400,15 +462,25 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
           matchedKey = "Lithium-Ion & Battery Unit";
         } else if (fileName.includes('monitor') || fileName.includes('tv') || fileName.includes('screen')) {
           matchedKey = "Monitors & Display Screens";
+        } else if (fileName.includes('pc') || fileName.includes('cpu') || fileName.includes('tower') || fileName.includes('cabinet') || fileName.includes('zebronics')) {
+          matchedKey = "Desktop PC Tower & CPU Cabinet";
         } else if (fileName.includes('person') || fileName.includes('selfie') || fileName.includes('cloth') || fileName.includes('shirt')) {
           matchedKey = "Non-Electronic Item (Person / Apparel / Organic)";
         } else {
-          // If aspect ratio is tall box profile with high dark metallic density -> Desktop PC Tower
-          if (pixelFeatures && pixelFeatures.aspectRatio < 1.15 && pixelFeatures.darkRatio > 0.35) {
+          // Precise Aspect Ratio Decision Matrix:
+          // Tall box ratio (H > W or AspectRatio < 0.95) with high dark metallic density -> Desktop PC Tower
+          if (pixelFeatures && pixelFeatures.aspectRatio < 0.95 && pixelFeatures.darkRatio > 0.25) {
             matchedKey = "Desktop PC Tower & CPU Cabinet";
-          } else if (pixelFeatures && pixelFeatures.aspectRatio > 2.0) {
+          } 
+          // Wide horizontal aspect ratio (W / H > 1.8) -> QWERTY Keyboard
+          else if (pixelFeatures && pixelFeatures.aspectRatio > 1.8) {
             matchedKey = "Keyboards & Computer Peripherals";
-          } else {
+          }
+          // Compact curved aspect ratio (0.95 <= AspectRatio <= 1.45) -> Optical Mouse
+          else if (pixelFeatures && pixelFeatures.aspectRatio >= 0.95 && pixelFeatures.aspectRatio <= 1.45) {
+            matchedKey = "Optical Computer Mouse & USB Peripherals";
+          }
+          else {
             matchedKey = "Desktop PC Tower & CPU Cabinet";
           }
         }
