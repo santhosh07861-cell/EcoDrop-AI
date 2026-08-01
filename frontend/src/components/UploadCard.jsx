@@ -85,6 +85,7 @@ async function analyzeImagePixels(file) {
       let greenPixels = 0;
       let skinPixels = 0;
       let darkMetallicPixels = 0;
+      let brightWhitePixels = 0;
 
       for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
@@ -96,7 +97,7 @@ async function analyzeImagePixels(file) {
           greenPixels++;
         }
 
-        // Skin tone detection
+        // Human Skin tone detection
         if (r > 95 && g > 40 && b > 20 && (Math.max(r, g, b) - Math.min(r, g, b) > 15) && Math.abs(r - g) > 15 && r > g && r > b) {
           skinPixels++;
         }
@@ -104,6 +105,11 @@ async function analyzeImagePixels(file) {
         // Dark metallic / black CPU case chassis detection
         if (r < 65 && g < 65 && b < 65) {
           darkMetallicPixels++;
+        }
+
+        // Bright white / paper / background pixels
+        if (r > 220 && g > 220 && b > 220) {
+          brightWhitePixels++;
         }
       }
 
@@ -138,7 +144,7 @@ async function callGeminiVisionApiDirect(file) {
 
     if (!base64Data) return null;
 
-    // Use active Gemini API Key
+    // Active Gemini API Key
     const apiKey = "AIzaSyDEjic6-86vewLpDdCM8VFDQNn58aMrL4Q";
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -149,15 +155,19 @@ async function callGeminiVisionApiDirect(file) {
           {
             parts: [
               {
-                text: `Analyze this image carefully for the Visakhapatnam GVMC E-Waste recycling program.
-Identify the EXACT electronic item in the picture (e.g. "Optical Computer Mouse", "Desktop PC Tower & CPU Cabinet", "QWERTY Keyboard", "Laptop", "Printed Circuit Board", "Lithium Battery", "Mobile Phone", "Monitor", or "Non-Electronic Item").
+                text: `Analyze this photo STRICTLY for the Visakhapatnam GVMC E-Waste recycling program.
+Examine the image carefully.
+CRITICAL QUESTION: IS THIS AN ELECTRONIC ITEM OR ELECTRONIC HARDWARE COMPONENT? (e.g. computer mouse, PC tower, keyboard, laptop, mobile phone, battery, monitor, circuit board, cable, charger).
+
+IF THE PHOTO SHOWS A PERSON, SELFIE, FACE, CLOTHING, SHOES, FURNITURE, BOTTLE, FOOD, ANIMAL, ROOM, PAPER, OR ANY NON-ELECTRONIC OBJECT:
+You MUST set "isEWaste": false and "wasteCategory": "Non-Electronic Item (Person / Furniture / Organic / Apparel)".
 
 Return JSON ONLY:
 {
   "isEWaste": boolean,
   "wasteCategory": string (exact name of identified item),
   "confidence": string (e.g. "99.4%"),
-  "estimatedWeight": string (e.g. "0.15 kg" for mouse, "6.50 kg" for desktop PC),
+  "estimatedWeight": string (e.g. "0.15 kg" for mouse, "6.50 kg" for PC),
   "greenPoints": number,
   "recommendation": string,
   "detectedComponents": [
@@ -301,13 +311,13 @@ const PRESET_CATEGORIES = {
     recyclabilityRating: "Grade A (Specialized Handling)",
     recommendation: "Avoid breaking glass surface. Request GVMC Bulky Pickup or drop at MVP Colony Center."
   },
-  "Non-Electronic Item (Person / Apparel / Organic)": {
+  "Non-Electronic Item (Person / Furniture / Organic)": {
     isEWaste: false,
     confidence: "99.8%",
     estimatedWeight: "0.00 kg",
     greenPoints: 0,
     detectedComponents: [
-      { name: "Human / Apparel / Non-Circuit Object", icon: Ban, status: "NOT E-WASTE" }
+      { name: "Human / Apparel / Organic / Furniture Object", icon: Ban, status: "NOT E-WASTE" }
     ],
     hazardClassification: "No E-Waste Hazard",
     recyclabilityRating: "Non-Recyclable E-Stream (SUBMISSION BLOCKED)",
@@ -396,7 +406,7 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
     }
 
     setAnalyzing(true);
-    toast.loading("Google Gemini AI Vision analyzing image...", { id: 'aiVisionToast' });
+    toast.loading("Google Gemini AI Vision analyzing photo...", { id: 'aiVisionToast' });
 
     try {
       let geminiData = null;
@@ -423,19 +433,19 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
       const fileName = selectedFile ? selectedFile.name.toLowerCase() : '';
 
       let matchedKey = "";
+      let isEWasteVerified = true;
 
-      // Prioritize Gemini AI Vision API output if available
-      if (geminiData && geminiData.wasteCategory) {
-        const catLower = geminiData.wasteCategory.toLowerCase();
-        if (geminiData.isEWaste === false) {
-          matchedKey = "Non-Electronic Item (Person / Apparel / Organic)";
-        } else if (catLower.includes('pc') || catLower.includes('cpu') || catLower.includes('desktop') || catLower.includes('tower') || catLower.includes('cabinet') || catLower.includes('case')) {
-          matchedKey = "Desktop PC Tower & CPU Cabinet";
+      // Check if Gemini Vision returned explicit classification
+      if (geminiData) {
+        const catLower = (geminiData.wasteCategory || '').toLowerCase();
+        if (geminiData.isEWaste === false || catLower.includes('non-electronic') || catLower.includes('person') || catLower.includes('furniture')) {
+          matchedKey = "Non-Electronic Item (Person / Furniture / Organic)";
+          isEWasteVerified = false;
         } else if (catLower.includes('mouse')) {
           matchedKey = "Optical Computer Mouse & USB Peripherals";
         } else if (catLower.includes('keyboard')) {
           matchedKey = "Keyboards & Computer Peripherals";
-        } else if (catLower.includes('laptop') || catLower.includes('computer')) {
+        } else if (catLower.includes('laptop') || catLower.includes('macbook')) {
           matchedKey = "Laptops & Computers";
         } else if (catLower.includes('pcb') || catLower.includes('board') || catLower.includes('circuit')) {
           matchedKey = "Printed Circuit Board (PCB) & Microprocessor";
@@ -443,75 +453,54 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
           matchedKey = "Lithium-Ion & Battery Unit";
         } else if (catLower.includes('monitor') || catLower.includes('screen') || catLower.includes('display')) {
           matchedKey = "Monitors & Display Screens";
+        } else if (catLower.includes('pc') || catLower.includes('cpu') || catLower.includes('tower') || catLower.includes('cabinet') || catLower.includes('desktop')) {
+          matchedKey = "Desktop PC Tower & CPU Cabinet";
         } else {
-          matchedKey = geminiData.wasteCategory;
+          matchedKey = geminiData.wasteCategory || "Desktop PC Tower & CPU Cabinet";
         }
       } else {
-        // High-Precision Pixel & Aspect Ratio Classification Matrix
-        if (pixelFeatures && pixelFeatures.skinRatio > 0.28) {
-          matchedKey = "Non-Electronic Item (Person / Apparel / Organic)";
+        // High-Precision Pixel & Filename Electronic Verification Engine
+        const hasElectronicKeyword = ['mouse', 'keyboard', 'pc', 'cpu', 'tower', 'cabinet', 'zebronics', 'laptop', 'macbook', 'battery', 'monitor', 'tv', 'screen', 'pcb', 'circuit', 'board', 'gpu', 'ram', 'charger', 'cable'].some(kw => fileName.includes(kw));
+        const hasNonElectronicKeyword = ['person', 'selfie', 'face', 'cloth', 'shirt', 'shoe', 'chair', 'table', 'bottle', 'food', 'room', 'cat', 'dog', 'paper', 'nature', 'tree'].some(kw => fileName.includes(kw));
+
+        if (hasNonElectronicKeyword || (pixelFeatures && pixelFeatures.skinRatio > 0.18)) {
+          matchedKey = "Non-Electronic Item (Person / Furniture / Organic)";
+          isEWasteVerified = false;
+        } else if (hasElectronicKeyword) {
+          if (fileName.includes('mouse')) matchedKey = "Optical Computer Mouse & USB Peripherals";
+          else if (fileName.includes('keyboard')) matchedKey = "Keyboards & Computer Peripherals";
+          else if (fileName.includes('laptop') || fileName.includes('macbook')) matchedKey = "Laptops & Computers";
+          else if (fileName.includes('battery')) matchedKey = "Lithium-Ion & Battery Unit";
+          else if (fileName.includes('monitor') || fileName.includes('screen')) matchedKey = "Monitors & Display Screens";
+          else matchedKey = "Desktop PC Tower & CPU Cabinet";
         } else if (pixelFeatures && pixelFeatures.greenRatio > 0.18) {
           matchedKey = "Printed Circuit Board (PCB) & Microprocessor";
-        } else if (fileName.includes('mouse')) {
+        } else if (pixelFeatures && pixelFeatures.aspectRatio >= 0.95 && pixelFeatures.aspectRatio <= 1.45 && pixelFeatures.darkRatio < 0.25) {
           matchedKey = "Optical Computer Mouse & USB Peripherals";
-        } else if (fileName.includes('keyboard')) {
-          matchedKey = "Keyboards & Computer Peripherals";
-        } else if (fileName.includes('laptop') || fileName.includes('macbook')) {
-          matchedKey = "Laptops & Computers";
-        } else if (fileName.includes('battery')) {
-          matchedKey = "Lithium-Ion & Battery Unit";
-        } else if (fileName.includes('monitor') || fileName.includes('tv') || fileName.includes('screen')) {
-          matchedKey = "Monitors & Display Screens";
-        } else if (fileName.includes('pc') || fileName.includes('cpu') || fileName.includes('tower') || fileName.includes('cabinet') || fileName.includes('zebronics')) {
+        } else if (pixelFeatures && pixelFeatures.aspectRatio < 0.95 && pixelFeatures.darkRatio > 0.25) {
           matchedKey = "Desktop PC Tower & CPU Cabinet";
-        } else if (fileName.includes('person') || fileName.includes('selfie') || fileName.includes('cloth') || fileName.includes('shirt')) {
-          matchedKey = "Non-Electronic Item (Person / Apparel / Organic)";
+        } else if (pixelFeatures && pixelFeatures.aspectRatio > 1.8) {
+          matchedKey = "Keyboards & Computer Peripherals";
         } else {
-          // Precise Aspect Ratio Decision Matrix:
-          // Tall box ratio (H > W or AspectRatio < 0.95) with high dark metallic density -> Desktop PC Tower
-          if (pixelFeatures && pixelFeatures.aspectRatio < 0.95 && pixelFeatures.darkRatio > 0.25) {
-            matchedKey = "Desktop PC Tower & CPU Cabinet";
-          } 
-          // Wide horizontal aspect ratio (W / H > 1.8) -> QWERTY Keyboard
-          else if (pixelFeatures && pixelFeatures.aspectRatio > 1.8) {
-            matchedKey = "Keyboards & Computer Peripherals";
-          }
-          // Compact curved aspect ratio (0.95 <= AspectRatio <= 1.45) -> Optical Mouse
-          else if (pixelFeatures && pixelFeatures.aspectRatio >= 0.95 && pixelFeatures.aspectRatio <= 1.45) {
-            matchedKey = "Optical Computer Mouse & USB Peripherals";
-          }
-          else {
-            matchedKey = "Desktop PC Tower & CPU Cabinet";
-          }
+          // If no electronic characteristics detected, REJECT item
+          matchedKey = "Non-Electronic Item (Person / Furniture / Organic)";
+          isEWasteVerified = false;
         }
       }
 
-      const catData = PRESET_CATEGORIES[matchedKey] || {
-        isEWaste: geminiData ? geminiData.isEWaste : true,
-        confidence: geminiData ? geminiData.confidence : "99.4%",
-        estimatedWeight: geminiData ? geminiData.estimatedWeight : "6.50 kg",
-        greenPoints: geminiData ? geminiData.greenPoints : 160,
-        detectedComponents: (geminiData && geminiData.detectedComponents) 
-          ? geminiData.detectedComponents.map(c => ({ ...c, icon: Cpu })) 
-          : [
-              { name: "ATX Power Supply Unit (PSU) & Transformer", icon: Zap, status: "Copper & High Voltage Core" },
-              { name: "Motherboard PCB & CPU Socket", icon: Cpu, status: "Gold Pin & Microchips" }
-            ],
-        hazardClassification: "Low Hazard",
-        recyclabilityRating: "Grade A+ (98% Recovery)",
-        recommendation: geminiData ? geminiData.recommendation : "Approved for GVMC E-Waste Collection."
-      };
+      const catData = PRESET_CATEGORIES[matchedKey] || PRESET_CATEGORIES["Non-Electronic Item (Person / Furniture / Organic)"];
 
       setSelectedCategoryKey(matchedKey);
 
       const finalResult = {
         wasteCategory: matchedKey,
-        ...catData
+        ...catData,
+        isEWaste: isEWasteVerified
       };
 
       setAiResult(finalResult);
 
-      if (finalResult.isEWaste) {
+      if (isEWasteVerified) {
         toast.success(`Google Gemini Vision: ${matchedKey} Verified!`, { id: 'aiVisionToast' });
       } else {
         toast.error(`Google Gemini Vision: Non-Electronic Item REJECTED!`, { id: 'aiVisionToast' });
@@ -526,14 +515,7 @@ export default function UploadCard({ dropPointId = "DP-GVMC-001" }) {
   // Refine Category Selection
   const handleCategorySelect = (categoryKey) => {
     setSelectedCategoryKey(categoryKey);
-    const catData = PRESET_CATEGORIES[categoryKey] || {
-      isEWaste: true,
-      confidence: "98.5%",
-      estimatedWeight: "2.50 kg",
-      greenPoints: 90,
-      detectedComponents: [{ name: "Electronic Hardware", icon: Layers, status: "Verified" }],
-      recommendation: "Approved for GVMC Drop-Off."
-    };
+    const catData = PRESET_CATEGORIES[categoryKey] || PRESET_CATEGORIES["Desktop PC Tower & CPU Cabinet"];
 
     setAiResult({
       wasteCategory: categoryKey,
