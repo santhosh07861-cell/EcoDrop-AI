@@ -1,34 +1,39 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HardHat, Lock, ArrowLeft, BadgeCheck } from 'lucide-react';
+import { HardHat, Lock, ArrowLeft, BadgeCheck, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ROLES } from '../constants/roles';
+import { AuthService, ADMIN_ROLE_ACCOUNTS } from '../services/AuthService';
 import toast from 'react-hot-toast';
 
 export default function WorkerLogin() {
-  const [workerId, setWorkerId] = useState('WRK-GVMC-881');
-  const [password, setPassword] = useState('workerpass');
+  const [email, setEmail] = useState(ADMIN_ROLE_ACCOUNTS.worker.email);
+  const [password, setPassword] = useState(ADMIN_ROLE_ACCOUNTS.worker.password);
   const [loading, setLoading] = useState(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      const userData = {
-        id: 'usr_worker_01',
-        name: 'K. Srinivasa Rao (Sanitation Crew)',
-        workerId,
-        role: ROLES.WORKER,
-        assignedWard: 'Ward 12 (Siripuram)'
-      };
-      loginUser(userData, 'token_worker_demo');
-      toast.success('Authenticated as Sanitation Worker!');
+    try {
+      const res = await AuthService.loginAdmin(email, password, ROLES.WORKER);
+      if (!res.success) {
+        toast.error(res.error || 'Authentication failed. Please check credentials.');
+        setLoading(false);
+        return;
+      }
+
+      const user = res.user;
+      loginUser(user, 'token_worker_gvmc');
+      toast.success(`Welcome ${user.name}! Logged in as Sanitation Worker.`);
       navigate('/dashboard/worker');
+    } catch (err) {
+      toast.error('Worker login error.');
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (
@@ -37,7 +42,7 @@ export default function WorkerLogin() {
         
         <Link to="/login-selection" className="inline-flex items-center space-x-1 text-xs font-bold text-slate-500 hover:text-amber-500">
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Select Portal</span>
+          <span>Back to Portal Selection</span>
         </Link>
 
         <div>
@@ -50,22 +55,22 @@ export default function WorkerLogin() {
 
         <form onSubmit={handleLogin} className="space-y-4 text-xs">
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Worker ID / Badge Code</label>
+            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Official Worker Email</label>
             <div className="relative">
-              <BadgeCheck className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <BadgeCheck className="w-4 h-4 text-amber-500 absolute left-3 top-3" />
               <input
-                type="text"
+                type="email"
                 required
-                value={workerId}
-                onChange={(e) => setWorkerId(e.target.value)}
-                placeholder="WRK-GVMC-881"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="worker@gvmc.gov.in"
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white font-medium outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Access PIN / Password</label>
+            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Access Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
@@ -82,11 +87,24 @@ export default function WorkerLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-extrabold shadow-md transition-all disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-extrabold shadow-md transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
           >
-            {loading ? 'Verifying Crew Badge...' : 'Login as Worker'}
+            {loading ? (
+              <span>Verifying Crew Credentials...</span>
+            ) : (
+              <>
+                <UserCheck className="w-4 h-4" />
+                <span>Login as Worker</span>
+              </>
+            )}
           </button>
         </form>
+
+        {/* Worker Credential Hint Box */}
+        <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-[11px] space-y-1">
+          <span className="font-bold text-amber-900 dark:text-amber-200 block">Firebase Stored Worker Credentials:</span>
+          <code className="text-amber-800 dark:text-amber-300 block font-mono text-[10px]">worker@gvmc.gov.in / workerpass123</code>
+        </div>
 
       </div>
     </div>
